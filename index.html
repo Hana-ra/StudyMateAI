@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyMateAI - دستیار هوشمند مطالعه</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- Navbar -->
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <span class="text-xl font-bold bg-gradient-to-l from-indigo-600 to-violet-500 bg-clip-text text-transparent">StudyMateAI</span>
+            </div>
+            
+            <nav class="hidden md:flex space-x-1 space-x-reverse text-sm font-medium">
+                <button onclick="switchTab('dashboard')" class="tab-btn px-3 py-2 rounded-lg text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-gray-700 transition"><i class="fa-solid fa-chart-pie ml-1"></i> داشبورد</button>
+                <button onclick="switchTab('chat')" class="tab-btn px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-750 transition"><i class="fa-solid fa-robot ml-1"></i> چت هوشمند</button>
+                <button onclick="switchTab('flashcards')" class="tab-btn px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-750 transition"><i class="fa-solid fa-clone ml-1"></i> فلش‌کارت</button>
+                <button onclick="switchTab('quiz')" class="tab-btn px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-750 transition"><i class="fa-solid fa-clipboard-question ml-1"></i> آزمون‌یار</button>
+                <button onclick="switchTab('pomodoro')" class="tab-btn px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-750 transition"><i class="fa-solid fa-clock ml-1"></i> پومودورو</button>
+            </nav>
+
+            <div class="flex items-center space-x-2 space-x-reverse">
+                <button onclick="toggleDarkMode()" class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Nav Bar (Bottom) -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 flex justify-around p-2">
+        <button onclick="switchTab('dashboard')" class="mobile-tab flex flex-col items-center text-xs text-indigo-600 dark:text-indigo-400"><i class="fa-solid fa-chart-pie text-lg mb-1"></i>داشبورد</button>
+        <button onclick="switchTab('chat')" class="mobile-tab flex flex-col items-center text-xs text-gray-500 dark:text-gray-400"><i class="fa-solid fa-robot text-lg mb-1"></i>چت</button>
+        <button onclick="switchTab('flashcards')" class="mobile-tab flex flex-col items-center text-xs text-gray-500 dark:text-gray-400"><i class="fa-solid fa-clone text-lg mb-1"></i>فلش‌کارت</button>
+        <button onclick="switchTab('quiz')" class="mobile-tab flex flex-col items-center text-xs text-gray-500 dark:text-gray-400"><i class="fa-solid fa-clipboard-question text-lg mb-1"></i>آزمون</button>
+        <button onclick="switchTab('pomodoro')" class="mobile-tab flex flex-col items-center text-xs text-gray-500 dark:text-gray-400"><i class="fa-solid fa-clock text-lg mb-1"></i>تمرکز</button>
+    </div>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-6">
+
+        <!-- DASHBOARD TAB -->
+        <section id="tab-dashboard" class="space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">زمان کل مطالعه</p>
+                        <h3 class="text-2xl font-bold mt-1">۱۲.۵ ساعت</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center text-xl"><i class="fa-solid fa-hourglass-half"></i></div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">فلش‌کارت‌های مرور شده</p>
+                        <h3 class="text-2xl font-bold mt-1">۱۴۸ عدد</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-violet-50 dark:bg-violet-900/30 text-violet-600 flex items-center justify-center text-xl"><i class="fa-solid fa-clone"></i></div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">میانگین نمره آزمون‌ها</p>
+                        <h3 class="text-2xl font-bold mt-1">۸۸٪</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center text-xl"><i class="fa-solid fa-award"></i></div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">توالی مطالعه (Streak)</p>
+                        <h3 class="text-2xl font-bold mt-1">۵ روز متوالی</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center text-xl"><i class="fa-solid fa-fire"></i></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <h3 class="text-lg font-bold mb-4">روند ساعات مطالعه در هفته</h3>
+                    <canvas id="studyChart" height="200"></canvas>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <h3 class="text-lg font-bold mb-4">درصد تسلط بر دروس</h3>
+                    <canvas id="subjectChart" height="200"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHAT TAB -->
+        <section id="tab-chat" class="hidden h-[75vh] flex flex-col bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-750">
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <div class="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white"><i class="fa-solid fa-robot"></i></div>
+                    <div>
+                        <h4 class="font-bold text-sm">استاد هوشمند StudyMate</h4>
+                        <span class="text-xs text-emerald-500 flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block ml-1"></span> آنلاین و آماده پاسخگویی</span>
+                    </div>
+                </div>
+            </div>
+            <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="flex items-start space-x-2 space-x-reverse">
+                    <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs flex-shrink-0"><i class="fa-solid fa-robot"></i></div>
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-2xl p-3.5 text-sm max-w-[80%] leading-relaxed">
+                        سلام! من دستیار هوشمند مطالعه شما هستم. می‌خواهید چه مبحثی را با هم مرور کنیم یا چه سوال درسی دارید بپرسید؟
+                    </div>
+                </div>
+            </div>
+            <div class="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750 flex items-center gap-2">
+                <input id="chatInput" type="text" placeholder="سوال خود را اینجا بنویسید..." class="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-600" onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm transition"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </section>
+
+        <!-- FLASHCARDS TAB -->
+        <section id="tab-flashcards" class="hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold">فلش‌کارت‌های فعال</h3>
+                <button onclick="alert('کارت جدید اضافه شد!')" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-indigo-700 transition"><i class="fa-solid fa-plus ml-1"></i> افزودن کارت</button>
+            </div>
+            <div class="max-w-md mx-auto perspective-1000">
+                <div id="flashcard" onclick="flipCard()" class="relative w-full h-64 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 cursor-pointer transform-style-3d transition-transform duration-500 flex flex-col justify-between">
+                    <div id="cardFront" class="absolute inset-0 p-6 flex flex-col justify-between backface-hidden">
+                        <span class="text-xs bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 self-start px-2.5 py-1 rounded-md">هوش مصنوعی</span>
+                        <div class="text-center font-bold text-lg">یادگیری ماشین (Machine Learning) چیست؟</div>
+                        <span class="text-xs text-gray-400 text-center">برای دیدن پاسخ کلیک کنید</span>
+                    </div>
+                    <div id="cardBack" class="absolute inset-0 p-6 flex flex-col justify-between backface-hidden rotate-y-180 bg-indigo-50 dark:bg-gray-750 rounded-2xl">
+                        <span class="text-xs bg-indigo-600 text-white self-start px-2.5 py-1 rounded-md">پاسخ</span>
+                        <div class="text-center text-sm leading-relaxed">زیرشاخه‌ای از هوش مصنوعی است که به رایانه‌ها اجازه می‌دهد بدون برنامه‌نویسی صریح، از داده‌ها بیاموزند و پیشرفت کنند.</div>
+                        <span class="text-xs text-gray-400 text-center">برای برگشت کلیک کنید</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-center gap-4">
+                <button onclick="nextCard('hard')" class="bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 px-6 py-2.5 rounded-xl text-sm font-medium">سخت بود</button>
+                <button onclick="nextCard('easy')" class="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 px-6 py-2.5 rounded-xl text-sm font-medium">بلد بودم</button>
+            </div>
+        </section>
+
+        <!-- QUIZ TAB -->
+        <section id="tab-quiz" class="hidden space-y-6 max-w-2xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4">
+                <h3 class="font-bold">آزمون هوش مصنوعی و الگوریتم‌ها</h3>
+                <span class="text-sm bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 px-3 py-1 rounded-lg">سوال ۱ از ۳</span>
+            </div>
+            <div class="space-y-4">
+                <p class="font-medium">کدام الگوریتم جزء یادگیری نظارت‌شده (Supervised Learning) محسوب می‌شود؟</p>
+                <div class="space-y-2">
+                    <label class="flex items-center p-3 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750">
+                        <input type="radio" name="quiz" class="ml-3"> رگرسیون خطی (Linear Regression)
+                    </label>
+                    <label class="flex items-center p-3 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750">
+                        <input type="radio" name="quiz" class="ml-3"> خوشه‌بندی K-Means
+                    </label>
+                    <label class="flex items-center p-3 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750">
+                        <input type="radio" name="quiz" class="ml-3"> یادگیری تقویتی عمیق
+                    </label>
+                </div>
+            </div>
+            <button onclick="alert('پاسخ شما ثبت شد!')" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition">سوال بعدی</button>
+        </section>
+
+        <!-- POMODORO TAB -->
+        <section id="tab-pomodoro" class="hidden space-y-6 max-w-md mx-auto text-center bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+            <h3 class="text-xl font-bold">تایمر تمرکز پومودورو</h3>
+            <div id="timerDisplay" class="text-6xl font-black text-indigo-600 my-6 tracking-wider">۲۵:۰۰</div>
+            <div class="flex justify-center gap-3">
+                <button onclick="startTimer()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 transition">شروع</button>
+                <button onclick="resetTimer()" class="bg-gray-200 dark:bg-gray-700 px-6 py-2.5 rounded-xl text-sm font-medium">بازنشانی</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Tab Switching
+        function switchTab(tabId) {
+            ['dashboard', 'chat', 'flashcards', 'quiz', 'pomodoro'].forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            
+            // Update active states
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'bg-indigo-50', 'dark:bg-gray-700');
+                btn.classList.add('text-gray-600', 'dark:text-gray-300');
+            });
+        }
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('themeIcon');
+            icon.classList.toggle('fa-moon');
+            icon.classList.toggle('fa-sun');
+        }
+
+        // Chatbot Simulation
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const container = document.getElementById('chatMessages');
+            if(!input.value.trim()) return;
+
+            // User Message
+            container.innerHTML += `
+                <div class="flex items-start space-x-2 space-x-reverse justify-end">
+                    <div class="bg-indigo-600 text-white rounded-2xl p-3.5 text-sm max-w-[80%] leading-relaxed">${input.value}</div>
+                </div>`;
+            
+            const userText = input.value;
+            input.value = '';
+            container.scrollTop = container.scrollHeight;
+
+            // AI Response Simulation
+            setTimeout(() => {
+                container.innerHTML += `
+                    <div class="flex items-start space-x-2 space-x-reverse">
+                        <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs flex-shrink-0"><i class="fa-solid fa-robot"></i></div>
+                        <div class="bg-gray-100 dark:bg-gray-700 rounded-2xl p-3.5 text-sm max-w-[80%] leading-relaxed">
+                            پاسخ هوشمند به سوال شما درباره "${userText}": این مبحث شامل نکات کلیدی مهمی است که برای تسلط بر آن پیشنهاد می‌کنیم ابتدا مفاهیم پایه را مرور کنید.
+                        </div>
+                    </div>`;
+                container.scrollTop = container.scrollHeight;
+            }, 1000);
+        }
+
+        // Flashcard Flip
+        let isFlipped = false;
+        function flipCard() {
+            isFlipped = !isFlipped;
+            const card = document.getElementById('flashcard');
+            card.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+        }
+        function nextCard(status) {
+            isFlipped = false;
+            document.getElementById('flashcard').style.transform = 'rotateY(0deg)';
+            alert('کارت بعدی بارگذاری شد!');
+        }
+
+        // Pomodoro Timer
+        let timerInterval;
+        let timeLeft = 1500;
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if(timeLeft > 0) {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft / 60);
+                    let s = timeLeft % 60;
+                    document.getElementById('timerDisplay').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                }
+            }, 1000);
+        }
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 1500;
+            document.getElementById('timerDisplay').innerText = "25:00";
+        }
+
+        // Charts Initialization
+        window.addEventListener('load', () => {
+            const ctx1 = document.getElementById('studyChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'],
+                    datasets: [{
+                        label: 'ساعت مطالعه',
+                        data: [2, 3.5, 1.5, 4, 3, 2.5, 5],
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            const ctx2 = document.getElementById('subjectChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['هوش مصنوعی', 'رتمان‌داده', 'برنامه‌نویسی پیشرفته', 'شبکه'],
+                    datasets: [{
+                        data: [40, 25, 20, 15],
+                        backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899', '#3b82f6']
+                    }]
+                },
+                options: { responsive: true }
+            });
+        });
+    </script>
+</body>
+</html>
