@@ -1,0 +1,12 @@
+{
+  "background_color": "#ffffff",
+  "dir": "rtl",
+  "display": "standalone",
+  "name": "StudyMateAI",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "StudyMateAI",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "lang": "fa"
+}
